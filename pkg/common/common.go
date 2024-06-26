@@ -18,6 +18,7 @@ package common
 
 import (
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -92,6 +93,10 @@ func ReplaceManifestData(mapMetadata *mapping.Metadata, modifiedManifest string,
 			return "", errors.Errorf("Failed to get the deprecated or removed Kubernetes version for API: %s", strings.ReplaceAll(deprecatedAPI, "\n", " "))
 		}
 
+		//  Dealing with interface version replacement
+		re := regexp.MustCompile(`\r`)
+		modifiedManifest = re.ReplaceAllString(modifiedManifest, "")
+
 		if count := strings.Count(modifiedManifest, deprecatedAPI); count > 0 {
 			if semver.Compare(apiVersionStr, kubeVersionStr) > 0 {
 				log.Printf("The following API:\n\"%s\" does not require mapping as the "+
@@ -108,6 +113,7 @@ func ReplaceManifestData(mapMetadata *mapping.Metadata, modifiedManifest string,
 			}
 		}
 	}
+
 	return modifiedManifest, nil
 }
 
